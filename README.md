@@ -1,2 +1,68 @@
-# hellraiser-revival-japanese-patch-demo
-The patch to add japanese localization to Clivebarker's Hellraiser: Revival Demo
+# Hellraiser: Revival デモ版 日本語化パッチ
+
+**開発中です。正式な配布版はまだ公開していません。**
+
+Clive Barker's Hellraiser: Revivalのデモ版を、簡体字中国語の設定で日本語表示にする非公式パッチです。製品版用ではありません。音声と画像に描かれた文字は対象外です。
+
+以下は完成版ZIPの使用方法です。開発中の試作ファイルと混ぜて使わないでください。
+
+## 対応版
+
+対応基準は `1.0.0.225957_HellraiserGameDemo_Shipping_26254_Demo_Test` です。実機確認と通しプレイを終えた対応版だけを、配布物の `manifest.json` に収録します。未確認の更新には導入スクリプトが適用を停止します。
+
+## 導入
+
+1. ゲームを終了します。
+2. [Releases](https://github.com/zombine04/hellraiser-revival-japanese-patch-demo/releases)から配布ZIPをダウンロードし、ZIP全体を通常のフォルダーへ展開します。ソースコードのZIPは導入用ではありません。
+3. `Install.cmd`を実行します。Steamライブラリからゲームを検出します。検出できない場合や複数ある場合は、ゲームのインストール先を入力します。
+4. 導入後にゲームを起動し、言語設定で**簡体字中国語（Chinese Simplified／简体中文）**を選択します。パッチ適用後、この選択肢は「日本語」と表示されます。
+
+Python、.NET、解析ツールは不要です。Windowsに付属するPowerShellを使用します。ゲームのコンテナ全体をハッシュ照合するため、導入には数分かかる場合があります。
+
+場所を明示する場合は、PowerShellで次のように指定できます。
+
+```powershell
+.\Patch.ps1 -Action Install -GameDir '<ゲームのインストール先>'
+```
+
+Steamのゲームのプロパティから「インストール済みファイル」→「参照」でインストール先を確認できます。配布ZIPのSHA-256はリリースに掲載された値と照合してください。ZIP内のチェックサムは展開後の破損確認に使います。
+
+## 更新と削除
+
+更新時はゲームを終了し、新しいZIPを別のフォルダーへ展開して `Install.cmd` を実行します。旧版の管理情報とファイルのハッシュを確認して更新します。
+
+削除時はゲームを終了し、`Uninstall.cmd` を実行します。ゲーム更新後でも、パッチの管理情報とハッシュが一致すれば削除できます。導入時のZIPは削除まで保管してください。
+
+管理対象は `Hellraiser/Content/Paks` 内の次のファイルです。
+
+- `Hellraiser_Japanese_P.pak`
+- `Hellraiser_Japanese_P.utoc`
+- `Hellraiser_Japanese_P.ucas`
+- `.hellraiser-japanese-patch.json`（管理情報）
+
+ゲーム本体のコンテナやセーブデータは変更しません。削除後は簡体字中国語の表示に戻ります。必要に応じて元の言語へ変更してください。
+
+## 導入できない場合
+
+- **未対応のゲーム版:** Steamのファイル整合性確認と対応版を確認してください。検査を無効にして適用しないでください。
+- **同名の未知ファイル・改変されたファイル:** 上書き・削除せず停止します。他のModや手動配置したファイルの可能性があります。入手元と内容を確認してください。
+- **配布物の破損:** ZIP全体を再取得して別のフォルダーへ展開してください。
+- **権限・ロック:** ゲームと他の導入処理を終了し、インストール先への書き込み権限を確認してください。
+- **処理の中断:** 電源断などで `.hellraiser-japanese-patch.lock` が残ることがあります。他の処理が動いていないことと管理対象のハッシュを確認してください。不明な場合は手動で続行せずIssueへ報告してください。
+- **リンク・ジャンクション:** 実体のゲームフォルダーを指定してください。対象を安全に確認できないリンク経由の適用は停止します。
+
+他の翻訳Modとの併用は未検証です。試作版が残っている場合は、その試作で追加したファイルを確認してから切り替えてください。
+
+## 問題の報告
+
+[Issues](https://github.com/zombine04/hellraiser-revival-japanese-patch-demo/issues)に、パッチ版、ゲーム版、発生場面、期待した表示と実際の表示を記載してください。字幕の問題には、話者と直前の状況も添えてください。
+
+ゲーム本体、抽出原文、セーブデータ、認証情報、実機ログ全文は添付しないでください。画像にアカウント名などが含まれる場合は伏せてください。
+
+## 開発
+
+Python 3.12を基盤に、ローカル抽出と配布ビルドを分離します。作業手順は[開発文書](https://github.com/zombine04/hellraiser-revival-japanese-patch-demo/blob/develop/docs/development.md)を参照してください。正式公開にはユーザーによる通しプレイと最終承認が必要です。
+
+## サポート
+
+[![Ko-fiでサポート](https://storage.ko-fi.com/cdn/kofi5.png?v=6)](https://ko-fi.com/zombine)
