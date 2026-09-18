@@ -67,3 +67,30 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+
+# ゲーム原本・ローカル作業・配布物は公開しない
+.local/
+private/
+dist/
+.tools/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.pak
+*.utoc
+*.ucas
+*.locres
+*.locmeta
+*.uasset
+*.uexp
+*.ubulk
+*.ufont
+*.usmap
+*.zip
+*.7z
+*.dmp
+*.sav
+.env
+.env.*
+!.env.example
