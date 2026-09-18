@@ -28,6 +28,9 @@ class InstallerTests(unittest.TestCase):
         self.game = self.base / "ゲーム 空白's folder"
         self.paks = self.game / 'Hellraiser/Content/Paks'
         self.paks.mkdir(parents=True)
+        self.exe = self.game/'Hellraiser/Binaries/Win64/Hellraiser-Win64-Shipping.exe'
+        self.exe.parent.mkdir(parents=True)
+        self.exe.write_bytes(b'self-made-executable-marker')
         for name in ORIGINALS:
             (self.paks / name).write_bytes(('自作の元データ:' + name).encode())
         for name in ('Patch.ps1', 'Install.cmd', 'Uninstall.cmd'):
@@ -35,6 +38,7 @@ class InstallerTests(unittest.TestCase):
         for name in ('README.md', 'THIRD_PARTY_NOTICES.md'):
             (self.package / name).write_text('自作のテスト用説明', encoding='utf-8')
         self.manifest = dict(schema_version=1, product='hellraiser-revival-demo-japanese', patch_version='1.0.0', files=[], supported_builds=[dict(version='test-build', containers=[dict(name=n, size=(self.paks/n).stat().st_size, sha256=digest(self.paks/n)) for n in ORIGINALS])])
+        self.manifest['supported_builds'][0]['executable'] = dict(name='Hellraiser/Binaries/Win64/Hellraiser-Win64-Shipping.exe',size=self.exe.stat().st_size,sha256=digest(self.exe))
         self.prepare('1.0.0')
         self.original_bytes = {n: (self.paks/n).read_bytes() for n in ORIGINALS}
 
@@ -91,6 +95,16 @@ class InstallerTests(unittest.TestCase):
         self.manifest['supported_builds'][0]['containers'][0]['sha256'] = '0'*64
         self.checksums()
         self.run_patch(success=False)
+
+    def test_executable_only_update_is_rejected(self):
+        self.exe.write_bytes(b'updated-executable')
+        self.run_patch(success=False)
+
+    def test_probe_patch_conflict_is_rejected(self):
+        trial=self.paks/'Hellraiser_Japanese_Probe_P.pak'
+        trial.write_bytes(b'trial')
+        self.run_patch(success=False)
+        self.assertEqual(trial.read_bytes(),b'trial')
 
     def test_manifest_traversal_is_rejected(self):
         self.manifest['files'][0]['name'] = '../unrelated.txt'
