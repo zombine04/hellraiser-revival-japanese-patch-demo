@@ -9,7 +9,7 @@ import sys
 
 FORBIDDEN_SUFFIXES = {
     '.pak', '.utoc', '.ucas', '.locres', '.locmeta', '.uasset', '.uexp',
-    '.ubulk', '.ufont', '.usmap', '.dll', '.exe', '.zip', '.7z', '.sav', '.dmp',
+    '.ubulk', '.ufont', '.usmap', '.dll', '.exe', '.zip', '.7z', '.sav', '.dmp', '.log',
 }
 FORBIDDEN_DIRS = {'.local', 'private', '.tools', 'dist', '.venv', '__pycache__'}
 PATTERNS = {
@@ -42,8 +42,31 @@ def git(*args: str) -> bytes:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--staged', action='store_true')
+    scope = parser.add_mutually_exclusive_group()
+    scope.add_argument('--staged', action='store_true')
+    scope.add_argument('--history', action='store_true', help='ローカルに存在する全参照の履歴を検査する')
     args = parser.parse_args()
+    if args.history:
+        objects = set()
+        failed = set()
+        for commit in git('rev-list', '--all').decode('ascii').splitlines():
+            for record in git('ls-tree', '-rz', '--full-tree', commit).split(b'\0'):
+                if not record:
+                    continue
+                header, raw_path = record.split(b'\t', 1)
+                mode, kind, oid = header.decode('ascii').split()
+                if kind != 'blob':
+                    continue
+                path = raw_path.decode('utf-8')
+                if (path, oid) in objects:
+                    continue
+                objects.add((path, oid))
+                for error in inspect(path, git('cat-file', 'blob', oid)):
+                    failed.add((path, error))
+        for path, error in sorted(failed):
+            print(f'{path}: {error}')
+        print(f'全参照の履歴 {len(objects)} 件を検査: {len(failed)} 件の問題')
+        return int(bool(failed))
     paths = git('diff', '--cached', '--name-only', '--diff-filter=ACMR', '-z') if args.staged else git('ls-files', '-z')
     failures = 0
     count = 0
