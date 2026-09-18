@@ -42,6 +42,11 @@
         "size": 50068,
         "sha256": "14175e3b216fa1347c14824802fc30cb08cf627f8b6ca5abe9f17f4c3aeb8805"
       }
-    ]
+    ],
+    "executable": {
+      "name": "Hellraiser/Binaries/Win64/Hellraiser-Win64-Shipping.exe",
+      "size": 199834624,
+      "sha256": "4392b6816a84040ebd31c28d1daa4ccd6849945e32e410fc1a166c6ae68c5c8b"
+    }
   }
 ]

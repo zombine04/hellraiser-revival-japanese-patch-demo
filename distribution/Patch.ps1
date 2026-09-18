@@ -117,6 +117,11 @@ try {
     if ($Action -eq 'Uninstall' -and $null -eq $oldState) { Write-Output 'このパッチは導入されていません。' }
     else {
         if ($Action -eq 'Install') {
+            foreach ($ext in @('pak','utoc','ucas')) {
+                if (Test-Path -LiteralPath (Join-Path $pakDir ('Hellraiser_Japanese_Probe_P.'+$ext))) {
+                    Fail '表示確認用の試作パッチが残っています。試作で追加した3ファイルを確認してから切り替えてください。'
+                }
+            }
             Assert-Package
             $manifest = Read-Json (Join-Path $PSScriptRoot 'manifest.json')
             if ($manifest.schema_version -ne 1 -or $manifest.product -cne $product -or $manifest.patch_version -cnotmatch '^\d+\.\d+\.\d+(?:-[a-z0-9.]+)?$') { Fail '配布物の対応情報が不正です。' }
@@ -127,6 +132,11 @@ try {
             $supported = $false
             foreach ($build in $manifest.supported_builds) {
                 $matched = $true
+                $exe = $build.executable
+                if ($exe.name -cne 'Hellraiser/Binaries/Win64/Hellraiser-Win64-Shipping.exe' -or $exe.sha256 -cnotmatch '^[0-9a-f]{64}$') { Fail '対応版の実行ファイル情報が不正です。' }
+                $exePath = Join-Path $GameDir $exe.name
+                Assert-NoLink $exePath
+                if (!(Test-Path -LiteralPath $exePath -PathType Leaf) -or (Get-Item -LiteralPath $exePath).Length -ne $exe.size -or (Hash $exePath) -cne $exe.sha256) { continue }
                 $requiredOriginals = @('global.utoc','global.ucas','pakchunk0-Windows.pak','pakchunk0-Windows.utoc','pakchunk0-Windows.ucas','pakchunk0optional-Windows.pak','pakchunk0optional-Windows.utoc','pakchunk0optional-Windows.ucas')
                 if (@($build.containers).Count -ne $requiredOriginals.Count) { Fail '対応版のコンテナ情報が不足しています。' }
                 $originalSeen = @{}
