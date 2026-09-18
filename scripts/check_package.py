@@ -9,7 +9,7 @@ import tempfile
 import zipfile
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
-from jp_patch.build import RELATIVE, STEM
+from jp_patch.build import RELATIVE, STEM, build_fonts
 from jp_patch.catalog import read_json, validate
 from jp_patch.locres import loads
 from jp_patch.tools import ROOT, repak
@@ -45,6 +45,10 @@ def check(path, *, release=False):
         if hashlib.sha256(files[item['name']]).hexdigest() != item['sha256']:
             raise ValueError('管理対象のハッシュが一致しません')
     with tempfile.TemporaryDirectory(prefix='jp-verify-') as temp:
+        # 原本なしで再生成し、IoStore全体が自作の参照設定だけであることを確認。
+        for name, data in build_fonts(Path(temp)/'font-check').items():
+            if files[name] != data:
+                raise ValueError('IoStoreが公開フォント設定と一致しません')
         pak=Path(temp)/f'{STEM}.pak'
         pak.write_bytes(files[pak.name])
         listing=subprocess.run([str(repak()),'list',str(pak)],check=True,capture_output=True,text=True).stdout.splitlines()

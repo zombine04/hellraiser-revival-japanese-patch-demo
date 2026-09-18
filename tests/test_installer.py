@@ -101,10 +101,13 @@ class InstallerTests(unittest.TestCase):
         self.run_patch(success=False)
 
     def test_probe_patch_conflict_is_rejected(self):
-        trial=self.paks/'Hellraiser_Japanese_Probe_P.pak'
-        trial.write_bytes(b'trial')
-        self.run_patch(success=False)
-        self.assertEqual(trial.read_bytes(),b'trial')
+        for stem in ('Hellraiser_Japanese_Probe_P', 'Hellraiser_Japanese_Font_P'):
+            with self.subTest(stem=stem):
+                trial=self.paks/(stem+'.pak')
+                trial.write_bytes(b'trial')
+                self.run_patch(success=False)
+                self.assertEqual(trial.read_bytes(),b'trial')
+                trial.unlink()
 
     def test_manifest_traversal_is_rejected(self):
         self.manifest['files'][0]['name'] = '../unrelated.txt'

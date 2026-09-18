@@ -117,9 +117,11 @@ try {
     if ($Action -eq 'Uninstall' -and $null -eq $oldState) { Write-Output 'このパッチは導入されていません。' }
     else {
         if ($Action -eq 'Install') {
-            foreach ($ext in @('pak','utoc','ucas')) {
-                if (Test-Path -LiteralPath (Join-Path $pakDir ('Hellraiser_Japanese_Probe_P.'+$ext))) {
-                    Fail '表示確認用の試作パッチが残っています。試作で追加した3ファイルを確認してから切り替えてください。'
+            foreach ($trialStem in @('Hellraiser_Japanese_Probe_P','Hellraiser_Japanese_Font_P')) {
+                foreach ($ext in @('pak','utoc','ucas')) {
+                    if (Test-Path -LiteralPath (Join-Path $pakDir ($trialStem+'.'+$ext))) {
+                        Fail '表示確認用の試作パッチが残っています。試作で追加したファイルを確認してから切り替えてください。'
+                    }
                 }
             }
             Assert-Package

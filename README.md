@@ -19,6 +19,8 @@ Clive Barker's Hellraiser: Revivalのデモ版を、簡体字中国語の設定�
 
 Python、.NET、解析ツールは不要です。Windowsに付属するPowerShellを使用します。ゲームのコンテナ全体をハッシュ照合するため、導入には数分かかる場合があります。
 
+日本語表示にはゲームに同梱された **NotoSansJP（Regular／Bold）** を使います。フォントの追加インストールは不要です。言語を切り替えた後も書体が変わらない場合は、ゲームを再起動してください。
+
 場所を明示する場合は、PowerShellで次のように指定できます。
 
 ```powershell

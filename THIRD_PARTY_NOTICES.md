@@ -11,7 +11,7 @@
 
 - https://github.com/trumank/retoc
 - ライセンス: MIT
-- UE5.6で追加Pakを読み込むため、ゲーム資産を含まない空のIoStoreコンテナを生成します。
+- UE5.6で追加Pakを読み込むため、自作のUFont参照設定だけを収録するIoStoreコンテナを生成します。
 - 実行ファイルはゲーム利用者向けZIPには同梱しません。バージョンとSHA-256を固定しています。
 
 ## LocRes形式の確認
@@ -24,5 +24,12 @@ Unreal Engineのローカライズ資料とCUE4ParseのLocRes v3読取処理を�
 ## 原本展開用ライブラリ
 
 repakが使用するOodleライブラリはローカル解析専用です。ゲーム原本、抽出したフォント、Oodleのバイナリは公開リポジトリにも配布ZIPにも含めません。日本語化パッチのビルドは非圧縮Pakを生成し、Oodleを必要としません。
+
+## フォント参照設定
+
+表示にはゲーム同梱のNotoSansJP Regular／Boldを使用します。フォント本体の複製・再配布は行わず、UFontの参照先と文字範囲だけを自作ツールで生成します。バイナリ形式の確認には、RetocのUE5.6パッケージ処理とCUE4ParseのUFont／FFontData読取処理を参照しました。
+
+- https://github.com/trumank/retoc/blob/v0.1.5/retoc/src/legacy_asset.rs
+- https://dev.epicgames.com/documentation/en-us/unreal-engine/asset-localization-in-unreal-engine?application_version=5.6
 
 ゲーム本体・名称・原作の権利は各権利者に帰属します。本リポジトリのライセンスはゲーム原本への権利を付与するものではありません。
