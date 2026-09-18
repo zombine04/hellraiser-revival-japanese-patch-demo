@@ -1,0 +1,33 @@
+{
+  "repak": {
+    "version": "0.2.3",
+    "repository": "https://github.com/trumank/repak",
+    "license": "MIT OR Apache-2.0",
+    "windows": {
+      "url": "https://github.com/trumank/repak/releases/download/v0.2.3/repak_cli-x86_64-pc-windows-msvc.zip",
+      "sha256": "6720d602144d75df477a99d5bedb6ea780997546afc335901d4937cafeaa73fa"
+    },
+    "linux": {
+      "url": "https://github.com/trumank/repak/releases/download/v0.2.3/repak_cli-x86_64-unknown-linux-gnu.tar.xz",
+      "sha256": "933bdb8e26f34e8fd70ea50201efca39df041de58aa83b1cd6eb83da124a2046"
+    }
+  },
+  "retoc": {
+    "version": "0.1.5",
+    "repository": "https://github.com/trumank/retoc",
+    "license": "MIT",
+    "windows": {
+      "url": "https://github.com/trumank/retoc/releases/download/v0.1.5/retoc_cli-x86_64-pc-windows-msvc.zip",
+      "sha256": "cc036b06ad3bdcf7003690b00d82719980c374e48a95bf0654f9959148d263aa"
+    },
+    "linux": {
+      "url": "https://github.com/trumank/retoc/releases/download/v0.1.5/retoc_cli-x86_64-unknown-linux-gnu.tar.xz",
+      "sha256": "3c309a4aea0c6d0a5c6ee31b1d1b32768eb86ac67e3a1890d677eabe6ce26b36"
+    }
+  },
+  "oodle_windows": {
+    "scope": "ローカルでの原本展開のみ。配布物には含めない",
+    "filename": "oo2core_9_win64.dll",
+    "sha256": "6f5d41a7892ea6b2db420f2458dad2f84a63901c9a93ce9497337b16c195f457"
+  }
+}
