@@ -4,7 +4,6 @@
 - 作業前にGitHub CLIでIssueを起票し、最新のdevelopから `codex/issue-番号-概要` を作成する。
 - 作業と検証後、develop宛てに日本語のPRを作成し、本文に `Closes #番号` を記載する。
 - 新規コミット、Issue、PRは日本語。既存コミット、Gitの作者名・メール設定、既存の著作権表記を変更しない。
-- READMEに作者欄を設けない。Ko-fiリンクは維持する。
 - 原文・抽出資産・ゲーム本体・個人パス・実機ログは `.local/` に保存し、GitやGitHubにアップロードしない。
 - リモートURL、認証情報、環境変数の値をそのまま出力しない。トークンをIssue・PR・ログへ残さない。
 - Git追加はファイルを明示し、コミット前に `python scripts/check_public.py --staged` を実行する。

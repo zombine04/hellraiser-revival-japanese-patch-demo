@@ -9,7 +9,7 @@ from jp_patch.tools import sha256
 
 def main():
     parser=argparse.ArgumentParser(description='ゲーム原本不要の日本語パッチビルド')
-    parser.add_argument('--preview',action='store_true',help='70件の試作訳だけを収録。正式配布しない')
+    parser.add_argument('--preview',action='store_true',help='開発中の訳文と初期試作を収録。正式配布しない')
     args=parser.parse_args()
     try:
         output,report=build(preview=args.preview)
