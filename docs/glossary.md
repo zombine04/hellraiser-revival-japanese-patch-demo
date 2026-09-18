@@ -32,6 +32,18 @@
 | Embracer | 抱擁者 | 敵の呼称 |
 | Sister of Mercy | 慈悲の修道女 | 人物・敵の呼称 |
 | Bruno / Charlotte / Marlowe | ブルーノ／シャーロット／マーロウ | アイテム・操作表示・ヒントで統一する |
+| Bruno Keller / Colin Marlowe | ブルーノ・ケラー／コリン・マーロウ | フルネームが示される箇所で使用する |
+| Zora Beckett | ゾーラ・ベケット | 会話では原文の呼び方に応じて名・姓を使う |
+| Scarlet Church | 緋色の教会 | 教団の名称 |
+| Revealer | 啓示者 | リヴァイアサンの称号 |
+| Rite of Rebirth | 再生の儀 | 儀式名。一般的な復活や蘇生と区別する |
+| ascension | 昇華 | 教団・魔道士の信仰や変容を指す文脈 |
+| Revenant / Revenant Mother | 蘇りし者／蘇りし母 | 儀式における呼称。人物名へ先回りして置き換えない |
+| Field of Souls | 魂の原野 | 迷宮内の呼称 |
+| Clairport State Penitentiary | クレアポート州立刑務所 | 固有の施設名 |
+| Blutherz Configuration | ブルートヘルツ・コンフィギュレーション | ジェネシスの箱と区別する |
+| Eremite | 隠修士 | 魔道士との関係が説明される役割名 |
+| Wych Elm Hill | ウィッチ・エルムの丘 | 固有の地名 |
 | banish | 追放 | 対象を消し去り、体力や苦痛を回復する操作 |
 | Save Token | セーブトークン | 難易度ヘルレイザーでセーブに消費する。通常のセーブと混同しない |
 | inventory / storage | 持ち物／保管庫 | 携行中の物と預けた物を区別する。保管箱は設置物の呼称 |
@@ -44,3 +56,5 @@
 Genesis Configurationと主人公・恋人の関係は[ゲーム公式紹介](https://saber.games/hellraiserrevival/)で確認しています。Lament Configurationと魔道士の関係は[原作者公式サイト](https://clivebarker.info/hellraiserb.html)を参考にしています。日本語欄はこのパッチの編集方針です。
 
 その他の人物・道具・能力は、実際の登場箇所と表示名を照合して追加します。内部開発名だけから公開表示名を決めず、未確認の呼称は翻訳データのレビュー情報に残します。
+
+「魔道士」の語源が会話の論点になる箇所では「セノバイト」を使い、修道会・共同体という説明につなげます。日常的な呼称まで一律に置き換えません。ブルーノが主人公をからかう「カササギ」は愛称として扱います。
