@@ -8230,7 +8230,7 @@
       "key": "T_SmallRepairKit_01.Description",
       "key_hash": 263728901,
       "source_hash": 470044981,
-      "ja": "<KeyInfo Input=\"Input.InterfaceInventory\" Size=\"4\"/> 持ち物を開き、小型修理キットで傷んだ近接武器の<Highlight>耐久度を回復</>する",
+      "ja": "<KeyInfo Input=\"Input.InterfaceInventory\" Size=\"4\"/> 持ち物を開き、基本修理キットで傷んだ近接武器の<Highlight>耐久度を回復</>する",
       "status": "reviewed",
       "display_checked": false
     },
@@ -8240,7 +8240,7 @@
       "key": "T_RepairKit_01.Description",
       "key_hash": 3351562249,
       "source_hash": 2754963723,
-      "ja": "<KeyInfo Input=\"Input.InterfaceInventory\" Size=\"4\"/> 持ち物を開き、修理キットで傷んだ近接武器の<Highlight>耐久度を回復</>し、さらにダメージを増やせるよう強化する",
+      "ja": "<KeyInfo Input=\"Input.InterfaceInventory\" Size=\"4\"/> 持ち物を開き、上級修理キットで傷んだ近接武器の<Highlight>耐久度を回復</>し、さらにダメージを増やせるよう強化する",
       "status": "reviewed",
       "display_checked": false
     },
