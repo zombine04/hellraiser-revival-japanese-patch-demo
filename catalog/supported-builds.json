@@ -1,0 +1,52 @@
+[
+  {
+    "version": "1.0.0.225957_HellraiserGameDemo_Shipping_26254_Demo_Test",
+    "containers": [
+      {
+        "name": "global.ucas",
+        "size": 3432992,
+        "sha256": "ef801b53fb3236c892adfca5d46195b0870da672d8a16d1899b769bd003bafe9"
+      },
+      {
+        "name": "global.utoc",
+        "size": 830,
+        "sha256": "6f8b04d2cf77a45e7ee5d921d2646f08564de02296a7805d64bb883ff77e6760"
+      },
+      {
+        "name": "pakchunk0-Windows.pak",
+        "size": 83433587,
+        "sha256": "bd839b3f68a8beacbe6b42bee1a51fedbc52e5f65ef3d3a3a2ee7a08b35b2ee2"
+      },
+      {
+        "name": "pakchunk0-Windows.ucas",
+        "size": 31660169712,
+        "sha256": "966e0a32f23f4bfe3dfd88987346437880b5328598f286a20047caa54e59aaf4"
+      },
+      {
+        "name": "pakchunk0-Windows.utoc",
+        "size": 14318110,
+        "sha256": "1466a5ad71c37b1a0c356d14a108905645eb91341472635b437aff8f2d8e3f17"
+      },
+      {
+        "name": "pakchunk0optional-Windows.pak",
+        "size": 339,
+        "sha256": "5813060c861a3f98a3555042053cd053e88bfefa032695518b6aec6ed5c9d326"
+      },
+      {
+        "name": "pakchunk0optional-Windows.ucas",
+        "size": 187931472,
+        "sha256": "2374cb2ab5895923665bfc5923617a3f6a13e830fafcd65b7f8b3f9435d2002d"
+      },
+      {
+        "name": "pakchunk0optional-Windows.utoc",
+        "size": 50068,
+        "sha256": "14175e3b216fa1347c14824802fc30cb08cf627f8b6ca5abe9f17f4c3aeb8805"
+      }
+    ],
+    "executable": {
+      "name": "Hellraiser/Binaries/Win64/Hellraiser-Win64-Shipping.exe",
+      "size": 199834624,
+      "sha256": "4392b6816a84040ebd31c28d1daa4ccd6849945e32e410fc1a166c6ae68c5c8b"
+    }
+  }
+]
