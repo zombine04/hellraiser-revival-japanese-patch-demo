@@ -13,6 +13,7 @@ from jp_patch.build import RELATIVE, STEM, build_fonts
 from jp_patch.catalog import read_json, validate
 from jp_patch.locres import loads
 from jp_patch.tools import ROOT, repak
+from jp_patch.translation_set import load_rows
 
 
 def check(path, *, release=False):
@@ -30,12 +31,7 @@ def check(path, *, release=False):
     manifest=json.loads(files['manifest.json'])
     if release and (manifest['preview'] or manifest['patch_version'] != (ROOT/'VERSION').read_text().strip()):
         raise ValueError('試作版またはVERSIONと異なる版は正式公開できません')
-    rows=[]
-    if manifest['preview']:
-        rows=read_json(ROOT/'translations/probe.json')['entries']
-    else:
-        for file in sorted((ROOT/'translations/release').glob('*.json')):
-            rows.extend(read_json(file)['entries'])
+    rows=load_rows(ROOT,preview=manifest['preview'])
     report=validate(read_json(ROOT/'catalog/game.json'),rows,read_json(ROOT/'translations/exclusions.json'),release=release)
     if report != manifest['coverage']:
         raise ValueError('翻訳集計が一致しません')
