@@ -8,11 +8,26 @@ import tempfile
 import zipfile
 
 from .catalog import read_json, validate
+from .fonts import ASSETS, write_assets
 from .locres import Entry, dumps, loads
 from .tools import ROOT, repak, retoc, sha256
 
 RELATIVE = 'Hellraiser/Content/Localization/Game/zh-Hans/Game.locres'
 STEM = 'Hellraiser_Japanese_P'
+
+
+def build_fonts(work, stem=STEM):
+    staging = work/'fonts'
+    write_assets(staging)
+    iostore = work/'iostore'/f'{stem}.utoc'
+    iostore.parent.mkdir(parents=True)
+    subprocess.run([str(retoc()),'to-zen',str(staging),str(iostore),'--version','UE5_6','--no-parallel'],check=True,capture_output=True)
+    listing = subprocess.run([str(retoc()),'list',str(iostore),'--path'],check=True,capture_output=True,text=True).stdout.splitlines()
+    expected = {f'../../../Hellraiser/Content/UI/Font/{asset}.uasset' for asset in ASSETS}
+    paths = {line.split()[-1] for line in listing if 'ExportBundleData' in line}
+    if paths != expected or len(listing) != 3 or sum('ContainerHeader' in line for line in listing) != 1:
+        raise ValueError('IoStoreに対象外の資産が含まれています')
+    return {file.name:file.read_bytes() for file in (iostore,iostore.with_suffix('.ucas'))}
 
 
 def deterministic_zip(files, output):
@@ -62,12 +77,7 @@ def build(*, preview=False):
         subprocess.run([str(repak()),'unpack',str(pak),'-o',str(unpacked)],check=True,capture_output=True)
         if (unpacked/RELATIVE).read_bytes() != payload:
             raise ValueError('Pak読み戻し検査に失敗しました')
-        empty = work/'empty'
-        empty.mkdir()
-        iostore = work/'iostore'/f'{STEM}.utoc'
-        iostore.parent.mkdir()
-        subprocess.run([str(retoc()),'to-zen',str(empty),str(iostore),'--version','UE5_6'],check=True,capture_output=True)
-        files = {pak.name:pak.read_bytes(),iostore.name:iostore.read_bytes(),iostore.with_suffix('.ucas').name:iostore.with_suffix('.ucas').read_bytes()}
+        files = {pak.name:pak.read_bytes(), **build_fonts(work)}
     manifest = dict(schema_version=1, product='hellraiser-revival-demo-japanese', patch_version=version, preview=preview, game_version=catalog['game_version'], coverage=report,
                     files=[dict(name=name,sha256=hashlib.sha256(content).hexdigest()) for name,content in sorted(files.items())], supported_builds=read_json(ROOT/'catalog/supported-builds.json'))
     files['manifest.json'] = (json.dumps(manifest,ensure_ascii=False,indent=2)+'\n').encode()
