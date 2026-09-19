@@ -1,0 +1,21 @@
+name: 不具合報告
+description: 日本語訳・表示・導入に関する不具合
+title: "[不具合] "
+body:
+  - type: input
+    id: version
+    attributes:
+      label: パッチとゲームのバージョン
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: 発生場面と再現手順
+      description: アカウント情報、個人パス、ゲームから抽出したファイルは添付しないでください。
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待する表示・動作

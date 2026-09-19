@@ -1,0 +1,12 @@
+changelog:
+  categories:
+    - title: 翻訳
+      labels: [翻訳]
+    - title: 導入・削除
+      labels: [導入]
+    - title: 開発・ビルド
+      labels: [開発基盤]
+    - title: 文書
+      labels: [文書]
+    - title: その他
+      labels: ['*']
