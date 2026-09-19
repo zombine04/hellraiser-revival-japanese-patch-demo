@@ -1,14 +1,12 @@
 # Hellraiser: Revival デモ版 日本語化パッチ
 
-**開発中です。正式な配布版はまだ公開していません。**
-
 Clive Barker's Hellraiser: Revivalのデモ版を、簡体字中国語の設定で日本語表示にする非公式パッチです。製品版用ではありません。音声と画像に描かれた文字は対象外です。
 
-以下は完成版ZIPの使用方法です。開発中の試作ファイルと混ぜて使わないでください。
+UI・設定・字幕・操作説明・アイテム・文書など、Game領域の全6,840件と、Engine由来のPC入力表示164件を収録しています。日本語訳と必要な設定だけを追加し、ゲーム本体は同梱しません。
 
 ## 対応版
 
-対応基準は `1.0.0.225957_HellraiserGameDemo_Shipping_26254_Demo_Test` です。実機確認と通しプレイを終えた対応版だけを、配布物の `manifest.json` に収録します。未確認の更新には導入スクリプトが適用を停止します。
+対応版は `1.0.0.225957_HellraiserGameDemo_Shipping_26254_Demo_Test` です。Windows版Steamデモで表示と通しプレイを確認しています。未確認の更新には導入スクリプトが適用を停止します。
 
 ## 導入
 
@@ -55,6 +53,12 @@ Steamのゲームのプロパティから「インストール済みファイル
 
 他の翻訳Modとの併用は未検証です。試作版が残っている場合は、その試作で追加したファイルを確認してから切り替えてください。
 
+## 確認範囲と制限
+
+デモの通しプレイで目に付く範囲の表示に問題がないことを確認しています。全分岐・未使用文字列・全コントローラー・すべての解像度を網羅した確認ではありません。詳細は[翻訳と確認の記録](https://github.com/zombine04/hellraiser-revival-japanese-patch-demo/blob/develop/docs/translation-status.md)を参照してください。
+
+音声、画像に焼き込まれた文字、起動失敗・クラッシュなどのエンジン診断表示は対象外です。キーの英数字や記号は実際の刻印に合わせて維持しています。
+
 ## 問題の報告
 
 [Issues](https://github.com/zombine04/hellraiser-revival-japanese-patch-demo/issues)に、パッチ版、ゲーム版、発生場面、期待した表示と実際の表示を記載してください。字幕の問題には、話者と直前の状況も添えてください。
@@ -63,7 +67,7 @@ Steamのゲームのプロパティから「インストール済みファイル
 
 ## 開発
 
-Python 3.12を基盤に、ローカル抽出と配布ビルドを分離します。作業手順は[開発文書](https://github.com/zombine04/hellraiser-revival-japanese-patch-demo/blob/develop/docs/development.md)を参照してください。正式公開にはユーザーによる通しプレイと最終承認が必要です。
+Python 3.12を基盤に、ローカル抽出と配布ビルドを分離しています。作業手順は[開発文書](https://github.com/zombine04/hellraiser-revival-japanese-patch-demo/blob/develop/docs/development.md)を参照してください。公開ブランチへの統合前に配布候補を検証し、最終承認を受けてリリースします。
 
 ## サポート
 
