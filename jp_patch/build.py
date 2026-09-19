@@ -1,19 +1,21 @@
 """公開データから配布物を生成する。ゲーム本体へのアクセスは禁止する。"""
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
 import tempfile
 import zipfile
 
-from .catalog import read_json, validate
+from .catalog import read_json
 from .fonts import ASSETS, write_assets
 from .locres import Entry, dumps, loads
 from .tools import ROOT, repak, retoc, sha256
-from .translation_set import load_rows
+from .translation_set import load_regions
+from .regions import GAME, REGIONS, coverage
 
-RELATIVE = 'Hellraiser/Content/Localization/Game/zh-Hans/Game.locres'
+RELATIVE = GAME.locres
 STEM = 'Hellraiser_Japanese_P'
 
 
@@ -46,33 +48,40 @@ def build(*, preview=False):
     version = (ROOT/'VERSION').read_text('ascii').strip()
     if not re.fullmatch(r'\d+\.\d+\.\d+', version):
         raise ValueError('VERSIONの形式が不正です')
-    rows = load_rows(ROOT, preview=preview)
+    regions = load_regions(ROOT, preview=preview, release=not preview)
     if preview:
         version += '-preview'
-    catalog = read_json(ROOT/'catalog/game.json')
-    report = validate(catalog, rows, read_json(ROOT/'translations/exclusions.json'), release=not preview)
-    entries = [Entry(**{k:row[k] for k in ('namespace','namespace_hash','key','key_hash','source_hash')}, text=row['ja']) for row in rows if row['status'] != 'untranslated']
-    if not entries:
-        raise ValueError('ビルドする訳文がありません')
-    payload = dumps(entries)
-    if loads(payload) != sorted(entries, key=lambda e:e.identity):
-        raise ValueError('LocRes読み戻し検査に失敗しました')
+    catalog = regions[GAME.name]['catalog']
+    report = coverage({name:data['report'] for name,data in regions.items()})
+    payloads = {}
+    for region in REGIONS:
+        entries = [Entry(**{k:row[k] for k in ('namespace','namespace_hash','key','key_hash','source_hash')}, text=row['ja'])
+                   for row in regions[region.name]['rows'] if row['status'] != 'untranslated']
+        if not entries:
+            raise ValueError('ビルドする訳文がない領域があります')
+        payload = dumps(entries)
+        if loads(payload) != sorted(entries, key=lambda e:e.identity):
+            raise ValueError('LocRes読み戻し検査に失敗しました')
+        payloads[region.locres] = payload
     destination = ROOT/'dist'
     destination.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='jp-build-') as temp:
         work = Path(temp)
         staging = work/'staging'
-        locres = staging/RELATIVE
-        locres.parent.mkdir(parents=True)
-        locres.write_bytes(payload)
+        for relative, payload in sorted(payloads.items()):
+            locres = staging/relative
+            locres.parent.mkdir(parents=True, exist_ok=True)
+            locres.write_bytes(payload)
         pak = work/f'{STEM}.pak'
-        subprocess.run([str(repak()),'pack',str(staging),str(pak),'--version','V11','--quiet'],check=True,capture_output=True)
+        # repak 0.2.3の並列packは読込完了順に書くため、複数LocResの順序を固定する。
+        subprocess.run([str(repak()),'pack',str(staging),str(pak),'--version','V11','--quiet'],
+                       check=True,capture_output=True,env=os.environ | {'RAYON_NUM_THREADS':'1'})
         listing = subprocess.run([str(repak()),'list',str(pak)],check=True,capture_output=True,text=True).stdout.splitlines()
-        if listing != [RELATIVE]:
+        if sorted(listing) != sorted(payloads):
             raise ValueError('Pakに対象外の資産が含まれています')
         unpacked = work/'unpacked'
         subprocess.run([str(repak()),'unpack',str(pak),'-o',str(unpacked)],check=True,capture_output=True)
-        if (unpacked/RELATIVE).read_bytes() != payload:
+        if any((unpacked/relative).read_bytes() != payload for relative,payload in payloads.items()):
             raise ValueError('Pak読み戻し検査に失敗しました')
         files = {pak.name:pak.read_bytes(), **build_fonts(work)}
     manifest = dict(schema_version=1, product='hellraiser-revival-demo-japanese', patch_version=version, preview=preview, game_version=catalog['game_version'], coverage=report,
@@ -84,7 +93,7 @@ def build(*, preview=False):
     for name in ('README.md','THIRD_PARTY_NOTICES.md'):
         files[name] = (ROOT/name).read_text('utf-8-sig').replace('\r\n','\n').encode()
     if preview:
-        files['README.md'] = (f'# 表示確認用の試作版\n\n開発中の日本語訳{len(entries):,}件を含みます。未完了の項目があり、正式版ではありません。\n\n'.encode() + files['README.md'])
+        files['README.md'] = (f'# 表示確認用の試作版\n\n開発中の日本語訳{report["translated"]-report["untranslated"]:,}件を含みます。正式公開前の表示確認用です。\n\n'.encode() + files['README.md'])
     files['SHA256SUMS.txt'] = ''.join(f'{hashlib.sha256(data).hexdigest()}  {name}\n' for name,data in sorted(files.items())).encode('ascii')
     output = destination/f'Hellraiser_Revival_Demo_Japanese_v{version}.zip'
     deterministic_zip(files, output)
