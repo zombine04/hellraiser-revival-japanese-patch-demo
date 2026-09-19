@@ -27,7 +27,19 @@ class GitHub:
         return json.loads(result.stdout)
 
     def release(self,tag):
-        return self.api('releases/tags/'+tag,missing=True)
+        current=self.api('releases/tags/'+tag,missing=True)
+        if current is not None:
+            return current
+        # 未公開ドラフトにはタグがなく、タグ指定APIは404を返す。
+        page=1
+        while True:
+            releases=self.api(f'releases?per_page=100&page={page}')
+            for release in releases:
+                if release['draft'] and release['tag_name']==tag:
+                    return release
+            if len(releases)<100:
+                return None
+            page+=1
 
     def tag_commit(self,tag):
         reference=self.api('git/ref/tags/'+tag,missing=True)
@@ -66,6 +78,8 @@ def publish(github,tag,commit,files):
     if current is None:
         github.create_draft(tag,commit)
         current=github.release(tag)
+    if current is None:
+        raise ValueError('作成したドラフトReleaseを取得できません。再実行前にGitHubの状態を確認してください')
     if current['target_commitish'] != commit and reference != commit:
         raise ValueError('既存リリースの対象コミットが一致しません')
     existing={asset['name'] for asset in current['assets']}
