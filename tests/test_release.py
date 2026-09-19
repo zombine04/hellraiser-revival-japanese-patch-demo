@@ -1,8 +1,35 @@
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import Mock, call
 
-from jp_patch.release import publish
+from jp_patch.release import GitHub, publish
+
+
+class ReleaseLookupTests(unittest.TestCase):
+    def test_draft_without_tag_is_found_on_later_page(self):
+        github=GitHub('example/test')
+        unrelated=[dict(draft=False,tag_name=f'v0.0.{i}') for i in range(100)]
+        draft=dict(id=123,draft=True,tag_name='v1.0.0',target_commitish='a'*40,assets=[])
+        github.api=Mock(side_effect=[None,unrelated,[draft]])
+        self.assertEqual(github.release('v1.0.0'),draft)
+        self.assertEqual(github.api.call_args_list,[
+            call('releases/tags/v1.0.0',missing=True),
+            call('releases?per_page=100&page=1'),
+            call('releases?per_page=100&page=2'),
+        ])
+
+    def test_published_release_does_not_need_draft_lookup(self):
+        github=GitHub('example/test')
+        published=dict(draft=False,tag_name='v1.0.0')
+        github.api=Mock(return_value=published)
+        self.assertEqual(github.release('v1.0.0'),published)
+        github.api.assert_called_once_with('releases/tags/v1.0.0',missing=True)
+
+    def test_absent_release_does_not_match_other_draft(self):
+        github=GitHub('example/test')
+        github.api=Mock(side_effect=[None,[dict(draft=True,tag_name='v2.0.0')]])
+        self.assertIsNone(github.release('v1.0.0'))
 
 
 class FakeGitHub:
@@ -56,6 +83,14 @@ class ReleaseTests(unittest.TestCase):
         self.github.reference='b'*40
         with self.assertRaises(ValueError): self.run_publish()
         self.assertEqual(self.github.creates,0)
+
+    def test_unavailable_created_draft_stops_before_upload(self):
+        self.github.release=Mock(return_value=None)
+        with self.assertRaisesRegex(ValueError,'ドラフトReleaseを取得できません'):
+            self.run_publish()
+        self.assertEqual(self.github.creates,1)
+        self.assertEqual(self.github.publications,0)
+        self.assertEqual(self.github.assets,{})
 
     def test_published_assets_are_not_replaced(self):
         self.run_publish()
