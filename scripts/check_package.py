@@ -9,11 +9,11 @@ import tempfile
 import zipfile
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
-from jp_patch.build import RELATIVE, STEM, build_fonts
-from jp_patch.catalog import read_json, validate
+from jp_patch.build import STEM, build_fonts
 from jp_patch.locres import loads
 from jp_patch.tools import ROOT, repak
-from jp_patch.translation_set import load_rows
+from jp_patch.translation_set import load_regions
+from jp_patch.regions import REGIONS, coverage
 
 
 def check(path, *, release=False):
@@ -31,8 +31,8 @@ def check(path, *, release=False):
     manifest=json.loads(files['manifest.json'])
     if release and (manifest['preview'] or manifest['patch_version'] != (ROOT/'VERSION').read_text().strip()):
         raise ValueError('試作版またはVERSIONと異なる版は正式公開できません')
-    rows=load_rows(ROOT,preview=manifest['preview'])
-    report=validate(read_json(ROOT/'catalog/game.json'),rows,read_json(ROOT/'translations/exclusions.json'),release=release)
+    regions=load_regions(ROOT,preview=manifest['preview'],release=release)
+    report=coverage({name:data['report'] for name,data in regions.items()})
     if report != manifest['coverage']:
         raise ValueError('翻訳集計が一致しません')
     if {item['name'] for item in manifest['files']} != binary_names or len(manifest['files']) != 3:
@@ -48,14 +48,15 @@ def check(path, *, release=False):
         pak=Path(temp)/f'{STEM}.pak'
         pak.write_bytes(files[pak.name])
         listing=subprocess.run([str(repak()),'list',str(pak)],check=True,capture_output=True,text=True).stdout.splitlines()
-        if listing != [RELATIVE]:
+        if sorted(listing) != sorted(region.locres for region in REGIONS):
             raise ValueError('対象外の資産がPakに含まれています')
         unpacked=Path(temp)/'out'
         subprocess.run([str(repak()),'unpack',str(pak),'-o',str(unpacked)],check=True,capture_output=True)
-        actual={(e.namespace,e.key):(e.namespace_hash,e.key_hash,e.source_hash,e.text) for e in loads((unpacked/RELATIVE).read_bytes())}
-    expected={(r['namespace'],r['key']):(r['namespace_hash'],r['key_hash'],r['source_hash'],r['ja']) for r in rows if r['status'] != 'untranslated'}
-    if actual != expected:
-        raise ValueError('収録LocResが公開訳文と一致しません')
+        for region in REGIONS:
+            actual={(e.namespace,e.key):(e.namespace_hash,e.key_hash,e.source_hash,e.text) for e in loads((unpacked/region.locres).read_bytes())}
+            expected={(r['namespace'],r['key']):(r['namespace_hash'],r['key_hash'],r['source_hash'],r['ja']) for r in regions[region.name]['rows'] if r['status'] != 'untranslated'}
+            if actual != expected:
+                raise ValueError('収録LocResが領域別の公開訳文と一致しません')
     return report
 
 

@@ -6,16 +6,26 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from jp_patch.catalog import compare, metadata, read_json
-from jp_patch.locres import Entry
+from jp_patch.locres import Entry, loads
 from jp_patch.tools import ROOT
+from jp_patch.regions import ENGINE, scope_keys
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--output', type=Path, default=ROOT/'catalog/game.json')
+    parser.add_argument('--region', choices=('game','engine'), default='game')
+    parser.add_argument('--output', type=Path)
     parser.add_argument('--compare', type=Path)
     args = parser.parse_args()
-    entries = [Entry(**row) for row in read_json(ROOT/'.local/source-en.json')]
+    if args.region == 'game':
+        entries = [Entry(**row) for row in read_json(ROOT/'.local/source-en.json')]
+    else:
+        wanted = scope_keys(read_json(ROOT/ENGINE.scope))
+        entries = [e for e in loads((ROOT/'.local/extracted/Engine/Content/Localization/Engine/en/Engine.locres').read_bytes()) if e.identity in wanted]
+        if {e.identity for e in entries} != wanted:
+            raise ValueError('Engineの対象キーが原本から欠落しています。対象範囲を再調査してください')
+    if args.output is None:
+        args.output = ROOT/f'catalog/{args.region}.json'
     inventory = read_json(ROOT/'.local/inventory.json')
     catalog = dict(schema_version=1, game_version=inventory['game_version'], entries=[metadata(e) for e in sorted(entries, key=lambda e:e.identity)])
     if args.compare:
