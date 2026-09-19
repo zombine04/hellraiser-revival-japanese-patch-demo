@@ -32,6 +32,14 @@ jobs:
       - run: python -m unittest discover -s tests -v
       - run: python scripts/build.py
       - run: python scripts/check_reproducible.py --release
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: 正式候補-${{ matrix.os }}
+          path: |
+            dist/*.zip
+            dist/*.sha256
+          if-no-files-found: error
+          retention-days: 7
   release:
     needs: verify
     runs-on: ubuntu-latest
@@ -46,6 +54,11 @@ jobs:
         with:
           python-version: '3.12'
       - run: python scripts/build.py
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: 正式候補-*
+          path: .local/candidates
+      - run: python scripts/compare_artifacts.py .local/candidates/正式候補-windows-latest .local/candidates/正式候補-ubuntu-latest dist
       - name: 成果物を検査してリリースを作成
         run: python scripts/release.py
         env:

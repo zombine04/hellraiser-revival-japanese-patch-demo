@@ -35,7 +35,7 @@ class InstallerTests(unittest.TestCase):
             (self.paks / name).write_bytes(('自作の元データ:' + name).encode())
         for name in ('Patch.ps1', 'Install.cmd', 'Uninstall.cmd'):
             shutil.copyfile(ROOT / 'distribution' / name, self.package / name)
-        for name in ('README.md', 'THIRD_PARTY_NOTICES.md'):
+        for name in ('README.md', 'THIRD_PARTY_NOTICES.md', 'LICENSE'):
             (self.package / name).write_text('自作のテスト用説明', encoding='utf-8')
         self.manifest = dict(schema_version=1, product='hellraiser-revival-demo-japanese', patch_version='1.0.0', files=[], supported_builds=[dict(version='test-build', containers=[dict(name=n, size=(self.paks/n).stat().st_size, sha256=digest(self.paks/n)) for n in ORIGINALS])])
         self.manifest['supported_builds'][0]['executable'] = dict(name='Hellraiser/Binaries/Win64/Hellraiser-Win64-Shipping.exe',size=self.exe.stat().st_size,sha256=digest(self.exe))
@@ -51,7 +51,7 @@ class InstallerTests(unittest.TestCase):
 
     def checksums(self):
         (self.package/'manifest.json').write_text(json.dumps(self.manifest), encoding='utf-8')
-        names = NAMES + ['Patch.ps1', 'Install.cmd', 'Uninstall.cmd', 'README.md', 'manifest.json', 'THIRD_PARTY_NOTICES.md']
+        names = NAMES + ['Patch.ps1', 'Install.cmd', 'Uninstall.cmd', 'README.md', 'manifest.json', 'THIRD_PARTY_NOTICES.md', 'LICENSE']
         (self.package/'SHA256SUMS.txt').write_text(''.join(f'{digest(self.package/n)}  {n}\n' for n in sorted(names)), encoding='ascii')
 
     def run_patch(self, action='Install', success=True):

@@ -80,7 +80,7 @@ function Assert-Package {
     Assert-NoLink $PSScriptRoot
     $checksumPath = Join-Path $PSScriptRoot 'SHA256SUMS.txt'
     if (!(Test-Path -LiteralPath $checksumPath -PathType Leaf)) { Fail 'チェックサム一覧がありません。配布ZIP全体を展開してください。' }
-    $expected = @($managedNames) + @('Patch.ps1','Install.cmd','Uninstall.cmd','README.md','manifest.json','THIRD_PARTY_NOTICES.md')
+    $expected = @($managedNames) + @('Patch.ps1','Install.cmd','Uninstall.cmd','README.md','manifest.json','THIRD_PARTY_NOTICES.md','LICENSE')
     $seen = @{}
     foreach ($line in [IO.File]::ReadAllLines($checksumPath)) {
         if ($line -cnotmatch '^([0-9a-f]{64})  ([A-Za-z0-9_.-]+)$') { Fail 'チェックサム一覧の形式が不正です。' }
