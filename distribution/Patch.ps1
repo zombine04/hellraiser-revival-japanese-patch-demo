@@ -32,6 +32,27 @@ function Assert-NoLink([string]$Path) {
 function Assert-GameStopped {
     if (@(Get-Process -Name 'Hellraiser','Hellraiser-Win64-Shipping' -ErrorAction SilentlyContinue).Count) { Fail 'ゲームを終了してから実行してください。' }
 }
+function Get-SteamGameCandidates([string[]]$SteamRoots) {
+    $libraries = @($SteamRoots)
+    foreach ($steamRoot in $SteamRoots) {
+        $vdf = Join-Path $steamRoot 'steamapps\libraryfolders.vdf'
+        if (Test-Path -LiteralPath $vdf -PathType Leaf) {
+            foreach ($match in [regex]::Matches([IO.File]::ReadAllText($vdf), '"path"\s+"((?:\\.|[^"\\])*)"')) {
+                $libraries += $match.Groups[1].Value.Replace('\\','\')
+            }
+        }
+    }
+    $seen = @{}
+    foreach ($library in $libraries) {
+        if ([string]::IsNullOrWhiteSpace($library)) { continue }
+        $candidate = [IO.Path]::GetFullPath((Join-Path $library "steamapps\common\Clive Barker's Hellraiser Revival Demo")).Replace('/','\').TrimEnd('\')
+        # PowerShellの通常のハッシュテーブルは大文字小文字を区別しない。
+        if (!$seen.ContainsKey($candidate) -and (Test-Path -LiteralPath (Join-Path $candidate 'Hellraiser\Content\Paks') -PathType Container)) {
+            $seen[$candidate] = $true
+            $candidate
+        }
+    }
+}
 function Find-Game {
     $steamRoots = @()
     foreach ($key in @('HKCU:\Software\Valve\Steam','HKLM:\SOFTWARE\WOW6432Node\Valve\Steam')) {
@@ -41,19 +62,7 @@ function Find-Game {
             if ($settings.PSObject.Properties[$prop]) { $steamRoots += [string]$settings.$prop }
         }
     }
-    $libraries = @($steamRoots)
-    foreach ($steamRoot in $steamRoots) {
-        $vdf = Join-Path $steamRoot 'steamapps\libraryfolders.vdf'
-        if (Test-Path -LiteralPath $vdf -PathType Leaf) {
-            foreach ($match in [regex]::Matches([IO.File]::ReadAllText($vdf), '"path"\s+"((?:\\.|[^"\\])*)"')) {
-                $libraries += $match.Groups[1].Value.Replace('\\','\')
-            }
-        }
-    }
-    $found = @($libraries | Select-Object -Unique | ForEach-Object {
-        $candidate = Join-Path $_ "steamapps\common\Clive Barker's Hellraiser Revival Demo"
-        if (Test-Path -LiteralPath (Join-Path $candidate 'Hellraiser\Content\Paks') -PathType Container) { $candidate }
-    })
+    $found = @(Get-SteamGameCandidates $steamRoots)
     if ($found.Count -eq 1) { return $found[0] }
     if ($NonInteractive) { Fail 'ゲームを一意に検出できません。-GameDirで指定してください。' }
     return Read-Host 'ゲームのインストール先フォルダーを入力してください'
