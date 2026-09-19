@@ -47,13 +47,14 @@ ConvertTo-Json -InputObject @(Get-SteamGameCandidates $roots)
         variants = [str(self.steam), str(self.steam).upper().replace('\\','/'), str(self.steam)+'\\.\\']
         found = self.discover(variants, variants)
         self.assertEqual(len(found), 1)
-        self.assertEqual(Path(found[0]), self.steam/GAME)
+        self.assertTrue(Path(found[0]).samefile(self.steam/GAME))
 
     def test_separate_installations_remain_separate(self):
         second = self.root/'別のライブラリ'
         (second/GAME/'Hellraiser/Content/Paks').mkdir(parents=True)
         found = self.discover([self.steam], [self.steam, second])
-        self.assertEqual({Path(p) for p in found}, {self.steam/GAME, second/GAME})
+        # CIではTEMPが8.3形式になるため、表記ではなく実体で比較する。
+        self.assertEqual({Path(p).resolve() for p in found}, {(self.steam/GAME).resolve(), (second/GAME).resolve()})
 
     def test_missing_library_does_not_create_a_candidate(self):
         found = self.discover([self.steam], [self.root/'存在しない保存先'])
