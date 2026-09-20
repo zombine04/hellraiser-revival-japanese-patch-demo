@@ -31,14 +31,14 @@ class InstallerTests(unittest.TestCase):
         self.exe = self.game/'Hellraiser/Binaries/Win64/Hellraiser-Win64-Shipping.exe'
         self.exe.parent.mkdir(parents=True)
         self.exe.write_bytes(b'self-made-executable-marker')
+        (self.game/'Version.txt').write_text('test-build\n', encoding='utf-8')
         for name in ORIGINALS:
             (self.paks / name).write_bytes(('自作の元データ:' + name).encode())
         for name in ('Patch.ps1', 'Install.cmd', 'Uninstall.cmd'):
             shutil.copyfile(ROOT / 'distribution' / name, self.package / name)
         for name in ('README.md', 'THIRD_PARTY_NOTICES.md', 'LICENSE'):
             (self.package / name).write_text('自作のテスト用説明', encoding='utf-8')
-        self.manifest = dict(schema_version=1, product='hellraiser-revival-demo-japanese', patch_version='1.0.0', files=[], supported_builds=[dict(version='test-build', containers=[dict(name=n, size=(self.paks/n).stat().st_size, sha256=digest(self.paks/n)) for n in ORIGINALS])])
-        self.manifest['supported_builds'][0]['executable'] = dict(name='Hellraiser/Binaries/Win64/Hellraiser-Win64-Shipping.exe',size=self.exe.stat().st_size,sha256=digest(self.exe))
+        self.manifest = dict(schema_version=1, product='hellraiser-revival-demo-japanese', patch_version='1.0.0', files=[], supported_builds=[dict(version='test-build')])
         self.prepare('1.0.0')
         self.original_bytes = {n: (self.paks/n).read_bytes() for n in ORIGINALS}
 
@@ -54,8 +54,13 @@ class InstallerTests(unittest.TestCase):
         names = NAMES + ['Patch.ps1', 'Install.cmd', 'Uninstall.cmd', 'README.md', 'manifest.json', 'THIRD_PARTY_NOTICES.md', 'LICENSE']
         (self.package/'SHA256SUMS.txt').write_text(''.join(f'{digest(self.package/n)}  {n}\n' for n in sorted(names)), encoding='ascii')
 
-    def run_patch(self, action='Install', success=True):
-        result = subprocess.run(['powershell.exe','-NoLogo','-NoProfile','-ExecutionPolicy','Bypass','-File',str(self.package/'Patch.ps1'),'-Action',action,'-GameDir',str(self.game),'-NonInteractive'], capture_output=True, timeout=30)
+    def run_patch(self, action='Install', success=True, *, non_interactive=True, allow_unsupported=False, input=None):
+        command = ['powershell.exe','-NoLogo','-NoProfile','-ExecutionPolicy','Bypass','-File',str(self.package/'Patch.ps1'),'-Action',action,'-GameDir',str(self.game)]
+        if non_interactive:
+            command.append('-NonInteractive')
+        if allow_unsupported:
+            command.append('-AllowUnsupported')
+        result = subprocess.run(command, input=input, capture_output=True, timeout=30)
         self.assertEqual(result.returncode == 0, success, result.stdout.decode('utf-8', errors='replace') + result.stderr.decode('utf-8', errors='replace'))
         self.assertFalse((self.paks/'.hellraiser-japanese-patch.lock').exists())
         for n, data in self.original_bytes.items():
@@ -91,14 +96,29 @@ class InstallerTests(unittest.TestCase):
         self.run_patch(success=False)
         self.assertFalse((self.paks/NAMES[0]).exists())
 
-    def test_unsupported_game_is_rejected(self):
-        self.manifest['supported_builds'][0]['containers'][0]['sha256'] = '0'*64
-        self.checksums()
+    def test_unsupported_game_requires_explicit_noninteractive_permission(self):
+        (self.game/'Version.txt').write_text('another-build', encoding='utf-8')
         self.run_patch(success=False)
+        self.run_patch(allow_unsupported=True)
 
-    def test_executable_only_update_is_rejected(self):
+    def test_game_files_are_not_hashed(self):
         self.exe.write_bytes(b'updated-executable')
+        (self.paks/ORIGINALS[0]).write_bytes(b'game-update')
+        self.original_bytes[ORIGINALS[0]] = b'game-update'
+        self.run_patch()
+
+    def test_unsupported_game_can_be_confirmed_interactively(self):
+        (self.game/'Version.txt').write_text('another-build', encoding='utf-8')
+        self.run_patch(non_interactive=False, input=b'y\n')
+
+    def test_unsupported_game_can_be_declined_interactively(self):
+        (self.game/'Version.txt').write_text('another-build', encoding='utf-8')
+        self.run_patch(success=False, non_interactive=False, input=b'n\n')
+
+    def test_missing_version_requires_warning_permission(self):
+        (self.game/'Version.txt').unlink()
         self.run_patch(success=False)
+        self.run_patch(allow_unsupported=True)
 
     def test_probe_patch_conflict_is_rejected(self):
         for stem in ('Hellraiser_Japanese_Probe_P', 'Hellraiser_Japanese_Font_P'):
