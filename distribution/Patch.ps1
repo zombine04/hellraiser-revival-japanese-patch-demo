@@ -1,6 +1,6 @@
 ﻿# Windows PowerShell 5.1 / PowerShell 7
 [CmdletBinding()]
-param([ValidateSet('Install','Uninstall')][string]$Action='Install', [string]$GameDir, [switch]$NonInteractive)
+param([ValidateSet('Install','Uninstall')][string]$Action='Install', [string]$GameDir, [switch]$NonInteractive, [switch]$AllowUnsupported)
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $product = 'hellraiser-revival-demo-japanese'
@@ -76,6 +76,30 @@ function Assert-FileList($Files) {
         $seen[[string]$file.name] = $true
     }
 }
+function Get-SupportedVersions($Builds) {
+    $versions = @()
+    $seen = @{}
+    foreach ($build in @($Builds)) {
+        $version = [string]$build.version
+        if ($version -cnotmatch '^[A-Za-z0-9._-]+$' -or $seen.ContainsKey($version)) { Fail '対応版の情報が不正です。' }
+        $seen[$version] = $true
+        $versions += $version
+    }
+    if (!$versions.Count) { Fail '対応版の情報がありません。' }
+    return $versions
+}
+function Confirm-Unsupported([string]$Detected, [string[]]$Supported) {
+    $display = if ([string]::IsNullOrWhiteSpace($Detected)) { '判定不能' } else { $Detected }
+    [Console]::Error.WriteLine('警告: インストールされているゲーム版は、このパッチの対応版と一致しません。')
+    [Console]::Error.WriteLine('検出した版: ' + $display)
+    [Console]::Error.WriteLine('対応版: ' + ($Supported -join ', '))
+    [Console]::Error.WriteLine('日本語が表示されない、表示が崩れる、またはゲームが起動しない可能性があります。')
+    [Console]::Error.WriteLine('ゲーム本体は上書きされず、Uninstall.cmdでパッチを削除できます。')
+    if ($AllowUnsupported) { return }
+    if ($NonInteractive) { Fail '未対応版への適用には -AllowUnsupported を明示してください。' }
+    $answer = Read-Host '続行しますか？ [y/N]'
+    if ($answer -cne 'y' -and $answer -cne 'Y') { Fail '適用を中止しました。' }
+}
 function Assert-Package {
     Assert-NoLink $PSScriptRoot
     $checksumPath = Join-Path $PSScriptRoot 'SHA256SUMS.txt'
@@ -137,32 +161,18 @@ try {
             $manifest = Read-Json (Join-Path $PSScriptRoot 'manifest.json')
             if ($manifest.schema_version -ne 1 -or $manifest.product -cne $product -or $manifest.patch_version -cnotmatch '^\d+\.\d+\.\d+(?:-[a-z0-9.]+)?$') { Fail '配布物の対応情報が不正です。' }
             Assert-FileList $manifest.files
+            $supportedVersions = @(Get-SupportedVersions $manifest.supported_builds)
             foreach ($file in $manifest.files) {
                 if ((Hash (Join-Path $PSScriptRoot $file.name)) -cne $file.sha256) { Fail 'パッチのハッシュが対応情報と一致しません。' }
             }
-            $supported = $false
-            foreach ($build in $manifest.supported_builds) {
-                $matched = $true
-                $exe = $build.executable
-                if ($exe.name -cne 'Hellraiser/Binaries/Win64/Hellraiser-Win64-Shipping.exe' -or $exe.sha256 -cnotmatch '^[0-9a-f]{64}$') { Fail '対応版の実行ファイル情報が不正です。' }
-                $exePath = Join-Path $GameDir $exe.name
-                Assert-NoLink $exePath
-                if (!(Test-Path -LiteralPath $exePath -PathType Leaf) -or (Get-Item -LiteralPath $exePath).Length -ne $exe.size -or (Hash $exePath) -cne $exe.sha256) { continue }
-                $requiredOriginals = @('global.utoc','global.ucas','pakchunk0-Windows.pak','pakchunk0-Windows.utoc','pakchunk0-Windows.ucas','pakchunk0optional-Windows.pak','pakchunk0optional-Windows.utoc','pakchunk0optional-Windows.ucas')
-                if (@($build.containers).Count -ne $requiredOriginals.Count) { Fail '対応版のコンテナ情報が不足しています。' }
-                $originalSeen = @{}
-                foreach ($file in $build.containers) {
-                    if ($file.name -cnotin $requiredOriginals -or $originalSeen.ContainsKey([string]$file.name) -or $file.sha256 -cnotmatch '^[0-9a-f]{64}$') { Fail '対応版のコンテナ情報が不正です。' }
-                    $originalSeen[[string]$file.name] = $true
-                    $path = Join-Path $pakDir $file.name
-                    Assert-NoLink $path
-                    if (!(Test-Path -LiteralPath $path -PathType Leaf) -or (Get-Item -LiteralPath $path).Length -ne $file.size) { $matched = $false; break }
-                    Write-Output ('対応版を確認中: ' + $file.name)
-                    if ((Hash $path) -cne $file.sha256) { $matched = $false; break }
-                }
-                if ($matched) { $supported = $true; break }
+            $installedVersion = ''
+            $versionPath = Join-Path $GameDir 'Version.txt'
+            Assert-NoLink $versionPath
+            if (Test-Path -LiteralPath $versionPath -PathType Leaf) {
+                try { $installedVersion = [IO.File]::ReadAllText($versionPath, [Text.Encoding]::UTF8).Trim() }
+                catch { $installedVersion = '' }
             }
-            if (!$supported) { Fail '未対応のゲーム版、または変更されたゲームファイルです。適用を中止しました。' }
+            if ($installedVersion -cnotin $supportedVersions) { Confirm-Unsupported $installedVersion $supportedVersions }
         }
         Assert-GameStopped
         $backup = @{}
