@@ -1,8 +1,8 @@
 # Hellraiser: Revival デモ版 日本語化パッチ
 
-Clive Barker's Hellraiser: Revivalのデモ版を、簡体字中国語の設定で日本語表示にする非公式パッチです。製品版用ではありません。音声と画像に描かれた文字は対象外です。
+Clive Barker's Hellraiser: Revivalのデモ版向け非公式日本語化パッチです。音声と画像に描かれた文字は対象外です。
 
-**製品版をお持ちの方へ:** [製品版向け日本語化パッチのリポジトリ](https://github.com/zombine04/hellraiser-revival-japanese-patch)で開発を進めています。現在は開発中・非公開のため、アクセス権のない方にはリンク先が表示されません。製品版パッチの公開後はこちらからご確認いただけます。
+**製品版をお持ちの方へ:** [製品版向け日本語化パッチ](https://github.com/zombine04/hellraiser-revival-japanese-patch)をご利用ください。導入手順と配布ZIPはそちらに掲載しています。製品版用とデモ版用のパッチは別々に配布しています。
 
 UI・設定・字幕・操作説明・アイテム・文書など、Game領域の全6,840件と、Engine由来のPC入力表示164件を収録しています。日本語訳と必要な設定だけを追加し、ゲーム本体は同梱しません。
 

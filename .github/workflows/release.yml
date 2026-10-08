@@ -2,6 +2,7 @@ name: 正式リリース
 on:
   push:
     branches: [main]
+    paths: [VERSION]
   workflow_dispatch:
 permissions:
   contents: read
